@@ -1,0 +1,304 @@
+
+/* =====================================================
+   SoluCIE — Style global commun (v1.0)
+   Thème sombre luxe + bleu électrique
+   Pages cibles : index.html, login.html, inscription.html
+   Auteur : ChatGPT
+   ===================================================== */
+
+/* ------------------------------
+   Variables & Reset
+------------------------------ */
+:root{
+  --bg-1:#0b0f17;
+  --bg-2:#121a2a;
+  --bg-3:#0a1120;
+  --bg-4:#0b1834;
+  --text:#ffffff;
+  --muted:#dbe2f0;
+  --muted-2:#aeb4c2;
+  --primary:#0d6efd;
+  --primary-dark:#0a58ca;
+  --border:rgba(255,255,255,.2);
+  --border-soft:rgba(255,255,255,.1);
+  --card:rgba(255,255,255,.05);
+  --card-strong:rgba(18, 26, 42, 0.95);
+  --shadow:0 8px 32px rgba(0,0,0,.4);
+}
+
+*,
+*::before,
+*::after{ box-sizing:border-box; }
+
+html, body{
+  height:100%;
+}
+
+body{
+  font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+
+  /* Fond animé harmonisé pour toutes les pages */
+  background: linear-gradient(-45deg, var(--bg-1), var(--bg-2), var(--bg-3), var(--bg-4));
+  background-size:400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift{
+  0%{   background-position:0% 50%; }
+  50%{  background-position:100% 50%; }
+  100%{ background-position:0% 50%; }
+}
+
+/* Amélioration focus pour l’accessibilité */
+:focus-visible{
+  outline: 3px solid rgba(13,110,253,.6);
+  outline-offset: 2px;
+}
+
+/* ------------------------------
+   NAVBAR
+------------------------------ */
+nav.navbar{
+  background: rgba(13,110,253,.08);
+  border-bottom:1px solid var(--border-soft);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding:.8rem 0;
+}
+
+.navbar .nav-link{
+  color:var(--muted) !important;
+  font-weight:500;
+  margin-left:1rem;
+  transition:all .3s ease;
+  position:relative;
+}
+
+.navbar .nav-link::after{
+  content:'';
+  position:absolute;
+  width:0%;
+  height:2px;
+  left:0;
+  bottom:0;
+  background-color:var(--primary);
+  transition:width .3s ease;
+}
+
+.navbar .nav-link:hover{
+  color:#fff !important;
+}
+.navbar .nav-link:hover::after,
+.navbar .nav-link.active::after{
+  width:100%;
+}
+
+/* Bouton d’action principal dans la navbar (ex: S’inscrire) */
+.btn-signup{
+  background:linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color:#fff !important;
+  font-weight:600;
+  border:none;
+  border-radius:.5rem;
+  padding:.4rem 1rem;
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.btn-signup:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(13,110,253,.5);
+}
+
+/* ------------------------------
+   HÉROS / TITRES
+------------------------------ */
+.hero, .hero-login, .hero-register{
+  text-align:center;
+  padding:3rem 1rem 2rem;
+  animation: fadeIn 1.2s ease;
+}
+@keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+
+.hero h1, .hero-login h1, .hero-register h1{
+  font-weight:700;
+  color:var(--primary);
+  font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.4rem);
+}
+.hero p, .hero-login p, .hero-register p{
+  font-size:.95rem;
+  max-width:640px;
+  margin:.75rem auto 0;
+  line-height:1.5;
+  color:var(--muted);
+}
+
+/* Cercle lumineux (icônes en haut des pages login/inscription) */
+.glow-circle{
+  width:80px; height:80px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, var(--primary), var(--primary-dark) 70%);
+  box-shadow: 0 0 20px rgba(13,110,253,.6), 0 0 60px rgba(13,110,253,.3);
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:2rem; margin:0 auto 1rem;
+  animation:pulse 3s infinite ease-in-out;
+}
+@keyframes pulse{
+  0%,100%{ transform:scale(1); box-shadow:0 0 20px rgba(13,110,253,.6), 0 0 60px rgba(13,110,253,.3); }
+  50%{    transform:scale(1.1); box-shadow:0 0 40px rgba(13,110,253,.8), 0 0 80px rgba(13,110,253,.4); }
+}
+
+/* ------------------------------
+   CARTES (cards) & ÉLÉVATION
+------------------------------ */
+.card{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius:1rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  animation: fadeInUp 1.2s ease;
+}
+@keyframes fadeInUp{ from{opacity:0; transform:translateY(40px)} to{opacity:1; transform:translateY(0)} }
+
+/* Variante plus opaque si nécessaire */
+.card-strong{
+  background: var(--card-strong);
+}
+
+/* Élément utilitaire pour un léger lift au survol */
+.elevate-on-hover{
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.elevate-on-hover:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(0,0,0,.45);
+}
+
+/* ------------------------------
+   FORMULAIRES
+------------------------------ */
+.form-label{
+  color:#fff;
+  font-weight:600;
+}
+
+.form-control,
+.form-select{
+  background-color: rgba(255,255,255,.10);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.30);
+  border-radius:.5rem;
+  transition: all .25s ease;
+}
+.form-control::placeholder{ color: var(--muted-2); }
+.form-control:focus,
+.form-select:focus{
+  border-color: var(--primary);
+  box-shadow: 0 0 12px rgba(13,110,253,.4);
+  background-color: rgba(255,255,255,.15);
+  color:#fff;
+}
+
+.input-group-text{
+  background-color: rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.30);
+  color:#fff;
+}
+
+.toggle-password{
+  cursor:pointer;
+  color:#adb5bd;
+  transition:color .2s;
+}
+.toggle-password:hover{ color:#fff; }
+
+.text-small-note{ font-size:.8rem; color:#6c757d; }
+
+/* ------------------------------
+   BOUTONS
+------------------------------ */
+.btn-primary{
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  border:none;
+  border-radius:.5rem;
+  transition: transform .25s ease, box-shadow .25s ease, opacity .25s ease;
+  font-weight:600;
+}
+.btn-primary:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(13,110,253,.5);
+}
+.btn-primary:disabled{ opacity:.7; }
+
+.btn-outline-light{
+  border-radius:.5rem;
+  border:1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.05);
+  color:#fff;
+}
+
+/* ------------------------------
+   TABLEAUX & BADGES (module compteurs)
+------------------------------ */
+.table-dark{
+  --bs-table-bg: transparent;
+}
+#tableCompteurs.table thead{
+  background-color: rgba(255,255,255,.05);
+}
+#tableCompteurs.table tbody td{
+  vertical-align: middle;
+}
+
+.badge-status-active{ background-color:#198754; }
+.badge-status-inactive{ background-color:#6c757d; }
+
+/* ------------------------------
+   MODALS (ajout compteur)
+------------------------------ */
+.modal-content{
+  background: var(--card);
+  color:#fff;
+  border:1px solid var(--border);
+  border-radius:1rem;
+}
+
+/* ------------------------------
+   FOOTER
+------------------------------ */
+footer{
+  text-align:center;
+  padding:1rem;
+  font-size:.9rem;
+  color:#aaa;
+  border-top:1px solid var(--border-soft);
+  margin-top:auto;
+}
+
+/* ------------------------------
+   UTILITAIRES
+------------------------------ */
+.text-primary{ color: var(--primary) !important; }
+.bg-blur-10{ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* Liens discrets sur fond sombre */
+a, .link{
+  color: var(--muted);
+  text-decoration:none;
+}
+a:hover, .link:hover{
+  color:#fff;
+  /*text-decoration:underline;*/
+}
+
+/* ------------------------------
+   RÉPONSIVE
+------------------------------ */
+@media (max-width: 576px){
+  .navbar .nav-link{ margin-left:.5rem; }
+  .glow-circle{ width:68px; height:68px; font-size:1.6rem; }
+}

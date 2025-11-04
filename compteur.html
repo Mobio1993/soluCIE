@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compteurs – SoluCIE (Complexe Hôtelier Emmanuella)</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <link rel="stylesheet" href="./style2-cie.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <i class="bi bi-lightning-charge text-primary fs-4 me-2" aria-hidden="true"></i>
+        <span class="fw-bold">SoluCIE</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse mt-3 mt-lg-0" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
+          <li class="nav-item"><a href="recharger.html" class="nav-link">Recharger</a></li>
+          <!-- ✅ Actif sur CETTE page -->
+          <li class="nav-item"><a href="compteur.html" class="nav-link active" aria-current="page">Compteurs</a></li>
+          <li class="nav-item"><a href="#historique" class="nav-link">Historique</a></li>
+          <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MODULE COMPTEURS -->
+  <section id="compteurs" class="py-5">
+    <div class="container">
+      <div class="card p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
+          <div>
+            <h4 class="text-white fw-bold mb-0">
+              <i class="bi bi-list-ul text-primary me-2"></i>
+              Gestion des compteurs
+            </h4>
+            <small class="text-secondary">
+              Ajoutez, configurez et activez vos compteurs.
+            </small>
+          </div>
+
+          <button
+            class="btn btn-primary fw-semibold ms-md-3"
+            data-bs-toggle="modal"
+            data-bs-target="#modalAddCompteur">
+            <i class="bi bi-plus-circle me-2"></i>
+            Nouveau compteur
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-dark table-hover table-borderless align-middle mb-0" id="tableCompteurs">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Numéro</th>
+                <th>Emplacement</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody><!-- injecté par JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL AJOUT COMPTEUR -->
+  <div class="modal fade" id="modalAddCompteur" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-secondary rounded-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-plus-circle me-2 text-primary"></i>
+            Ajouter un compteur
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+
+        <div class="modal-body">
+          <form id="addCompteurForm" class="row g-3" novalidate>
+            <div class="col-12">
+              <label for="compteurNom" class="form-label">Nom d'affichage</label>
+              <input id="compteurNom" type="text" class="form-control" required>
+              <div class="invalid-feedback">Saisissez un nom.</div>
+            </div>
+
+            <div class="col-12">
+              <label for="compteurNumero" class="form-label">Numéro compteur</label>
+              <input id="compteurNumero" type="text" class="form-control" required>
+              <div class="invalid-feedback">Saisissez le numéro du compteur.</div>
+            </div>
+
+            <div class="col-12">
+              <label for="compteurZone" class="form-label">Emplacement</label>
+              <input id="compteurZone" type="text" class="form-control" required>
+              <div class="invalid-feedback">Indiquez l’emplacement (ex : hôtel, chambre 12, bar…).</div>
+            </div>
+
+            <div class="col-12">
+              <label for="compteurStatut" class="form-label">Statut</label>
+              <select id="compteurStatut" class="form-select" required>
+                <option value="actif">Actif</option>
+                <option value="inactif">Inactif</option>
+              </select>
+              <div class="invalid-feedback">Choisissez un statut.</div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button class="btn btn-outline-light" data-bs-dismiss="modal">Annuler</button>
+          <button id="saveCompteurBtn" class="btn btn-primary fw-semibold">
+            <i class="bi bi-save2 me-2"></i>
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    © <span id="year"></span> Complexe Hôtelier Emmanuella | Système de Recharge Électrique Intelligente
+  </footer>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script defer>
+    // --- Persistance : localStorage (partagé avec les autres pages)
+    const STORAGE_KEY = 'solucie.compteurs';
+    const SEED = [{ nom: 'Compteur_Night_Club', numero: '24212919633', zone: 'hotel', statut: 'actif' }];
+
+    const $ = (s) => document.querySelector(s);
+    const tableBody     = $('#tableCompteurs tbody');
+    const saveBtn       = $('#saveCompteurBtn');
+    const addForm       = $('#addCompteurForm');
+
+    function readCompteurs() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const arr = raw ? JSON.parse(raw) : null;
+        return Array.isArray(arr) && arr.length ? arr : SEED;
+      } catch { return SEED; }
+    }
+    function writeCompteurs(arr) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    function renderCompteursTable() {
+      const compteurs = readCompteurs();
+      tableBody.innerHTML = '';
+
+      compteurs.forEach((cpt, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cpt.nom}</td>
+          <td>${cpt.numero}</td>
+          <td>${cpt.zone}</td>
+          <td>
+            <span class="badge rounded-pill ${cpt.statut === 'actif' ? 'badge-status-active' : 'badge-status-inactive'}">
+              ${cpt.statut}
+            </span>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-danger" title="Supprimer" data-index="${index}">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>`;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function deleteCompteur(index) {
+      const arr = readCompteurs();
+      if (index < 0 || index >= arr.length) return;
+      if (confirm('Voulez-vous vraiment supprimer ce compteur ?')) {
+        arr.splice(index, 1);
+        writeCompteurs(arr);
+        renderCompteursTable();
+      }
+    }
+
+    function onSaveCompteur() {
+      // Validation Bootstrap
+      addForm.classList.add('was-validated');
+
+      const nom    = $('#compteurNom').value.trim();
+      const numero = $('#compteurNumero').value.trim();
+      const zone   = $('#compteurZone').value.trim();
+      const statut = $('#compteurStatut').value;
+
+      if (!nom || !numero || !zone || !statut) return;
+
+      const arr = readCompteurs();
+      arr.push({ nom, numero, zone, statut });
+      writeCompteurs(arr);
+
+      // Reset + fermer modal
+      addForm.reset();
+      addForm.classList.remove('was-validated');
+      const modalEl = document.getElementById('modalAddCompteur');
+      const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      modalInstance.hide();
+
+      renderCompteursTable();
+    }
+
+    function initNavbarActive() {
+      // Auto-active l’onglet selon l’URL (au cas où)
+      const path = location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('.navbar .nav-link').forEach(a => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        if (href === path) {
+          a.classList.add('active');
+          a.setAttribute('aria-current', 'page');
+        } else {
+          a.classList.remove('active');
+          a.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    function initFooterYear() {
+      const y = new Date().getFullYear();
+      const yearSpan = document.getElementById('year');
+      if (yearSpan) yearSpan.textContent = y;
+    }
+
+    function initEvents() {
+      // Click suppression (délégation)
+      tableBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-index]');
+        if (!btn) return;
+        deleteCompteur(parseInt(btn.getAttribute('data-index'), 10));
+      });
+      // Enregistrer depuis la modal
+      saveBtn.addEventListener('click', onSaveCompteur);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initNavbarActive();
+      initFooterYear();
+      renderCompteursTable();
+      initEvents();
+    });
+  </script>
+</body>
+</html>

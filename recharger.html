@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recharger – SoluCIE (Complexe Hôtelier Emmanuella)</title>
+  <meta name="color-scheme" content="dark">
+
+  <!-- Perf: préconnexion fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <!-- Thème -->
+  <link rel="stylesheet" href="./style2-cie.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <i class="bi bi-lightning-charge text-primary fs-4 me-2" aria-hidden="true"></i>
+        <span class="fw-bold">SoluCIE</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse mt-3 mt-lg-0" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a href="index.html" class="nav-link">Accueil</a>
+          </li>
+          <li class="nav-item">
+            <a href="recharger.html" class="nav-link active" aria-current="page">Recharger</a>
+          </li>
+          <li class="nav-item">
+            <a href="compteur.html" class="nav-link">Compteurs</a>
+          </li>
+          <li class="nav-item">
+            <a href="#historique" class="nav-link">Historique</a>
+          </li>
+          <li class="nav-item">
+            <a href="#contact" class="nav-link">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main id="content" class="py-5" tabindex="-1">
+    <section id="recharge">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-7 col-lg-6">
+            <div class="card p-4 mb-5 elevate-on-hover">
+              <h4 class="text-center mb-3 text-white fw-bold">
+                <i class="bi bi-battery-charging me-2 text-primary" aria-hidden="true"></i>
+                Recharge automatique
+              </h4>
+
+              <form id="rechargeForm" novalidate>
+                <div class="mb-3">
+                  <label for="selectCompteur" class="form-label">Compteur</label>
+                  <select id="selectCompteur" class="form-select" required>
+                    <option value="" selected disabled>Sélectionner…</option>
+                    <!-- options injectées par JS -->
+                  </select>
+                  <div class="invalid-feedback">Choisissez un compteur.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="montant" class="form-label">Montant à recharger (FCFA)</label>
+                  <input
+                    id="montant"
+                    type="number"
+                    class="form-control"
+                    placeholder="Ex : 5000"
+                    min="1000"
+                    step="500"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    required
+                  >
+                  <div class="form-text text-small-note">Minimum 1 000 FCFA — paliers de 500 FCFA.</div>
+                  <div class="invalid-feedback">Saisissez un montant valide (≥ 1 000 et multiple de 500).</div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="paiement" class="form-label">Mode de paiement</label>
+                  <select id="paiement" class="form-select" required>
+                    <option value="" selected disabled>Choisir…</option>
+                    <option value="orange-money">Orange Money</option>
+                    <option value="mtn-money">MTN Money</option>
+                    <option value="moov-money">Moov Money</option>
+                    <option value="wave">Wave</option>
+                  </select>
+                  <div class="invalid-feedback">Sélectionnez un mode de paiement.</div>
+                </div>
+
+                <div class="d-grid">
+                  <button id="btnSubmit" type="submit" class="btn btn-primary py-2 fw-semibold">
+                    <span class="btn-label">
+                      <i class="bi bi-lightning-charge me-2" aria-hidden="true"></i>
+                      Recharger maintenant
+                    </span>
+                    <span class="btn-spinner d-none" aria-hidden="true">
+                      <span class="spinner-border spinner-border-sm align-text-top" role="status"></span>
+                      <span class="ms-2">Traitement…</span>
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              <div id="statusMsg"
+                   class="mt-3 text-center fw-semibold"
+                   role="status"
+                   aria-live="polite"></div>
+            </div>
+
+            <p class="text-center text-small-note">
+              Astuce : ajoutez/supprimez vos compteurs dans la page <a href="compteur.html" class="link">Compteurs</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> Complexe Hôtelier Emmanuella | Système de Recharge Électrique Intelligente
+  </footer>
+
+  <!-- Scripts -->
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script defer>
+    // --- Source de vérité "compteurs" : localStorage (fallback sur un seed si vide)
+    const SEED_COMPTEURS = [
+      { nom: 'Compteur_Night_Club', numero: '24212919633', zone: 'hotel', statut: 'actif' },
+    ];
+
+    const storageKey = 'solucie.compteurs';
+
+    function readCompteurs() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const arr = raw ? JSON.parse(raw) : null;
+        if (!Array.isArray(arr) || !arr.length) return SEED_COMPTEURS;
+        return arr;
+      } catch { return SEED_COMPTEURS; }
+    }
+
+    function getActifs() {
+      return readCompteurs().filter(c => (c?.statut || '').toLowerCase() === 'actif');
+    }
+
+    // --- Helpers DOM
+    const $ = (sel) => document.querySelector(sel);
+    const selectCompteur = $('#selectCompteur');
+    const rechargeForm   = $('#rechargeForm');
+    const statusMsg      = $('#statusMsg');
+    const btnSubmit      = $('#btnSubmit');
+
+    // --- Remplir le select avec les compteurs actifs
+    function renderSelectCompteurs() {
+      if (!selectCompteur) return;
+      // Reset tout sauf l'option disabled
+      selectCompteur.querySelectorAll('option:not([disabled])').forEach(o => o.remove());
+      getActifs().forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.numero;
+        opt.textContent = c.nom;
+        selectCompteur.appendChild(opt);
+      });
+    }
+
+    // --- Validation simple du montant (multiple de 500)
+    function isMontantValide(v) {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 1000 && n % 500 === 0;
+    }
+
+    // --- Feedback UI
+    function setStatus(type, msg) {
+      statusMsg.className = 'mt-3 text-center fw-semibold';
+      if (type === 'error') statusMsg.classList.add('text-danger');
+      if (type === 'success') statusMsg.classList.add('text-success');
+      statusMsg.textContent = msg;
+    }
+
+    function setLoading(isLoading) {
+      if (!btnSubmit) return;
+      btnSubmit.disabled = isLoading;
+      btnSubmit.querySelector('.btn-label')?.classList.toggle('d-none', isLoading);
+      btnSubmit.querySelector('.btn-spinner')?.classList.toggle('d-none', !isLoading);
+    }
+
+    // --- Soumission
+    function handleSubmit(e) {
+      e.preventDefault();
+      // HTML5 validity + nos règles
+      const montantEl = $('#montant');
+      const paiementEl = $('#paiement');
+
+      // Appliquer/retirer les classes de validation Bootstrap
+      rechargeForm.classList.add('was-validated');
+
+      if (!selectCompteur.value || !paiementEl.value || !isMontantValide(montantEl.value)) {
+        setStatus('error', 'Veuillez compléter correctement les informations (montant multiple de 500).');
+        return;
+      }
+
+      // Simuler l’appel backend / HES
+      setLoading(true);
+      setStatus('success', '✅ Rechargement en cours de traitement…');
+
+      // Simulation courte
+      setTimeout(() => {
+        setLoading(false);
+        setStatus('success', '✅ Rechargement soumis. Vous recevrez une confirmation sous peu.');
+        rechargeForm.reset();
+        rechargeForm.classList.remove('was-validated');
+        renderSelectCompteurs(); // remet l’option par défaut
+        // TODO: intégrer ici l’appel réel à ton API (token + endpoint)
+      }, 1200);
+    }
+
+    // --- Init
+    function init() {
+      // Année footer
+      const y = new Date().getFullYear();
+      const yearSpan = document.getElementById('year');
+      if (yearSpan) yearSpan.textContent = y;
+
+      renderSelectCompteurs();
+
+      if (rechargeForm) {
+        rechargeForm.addEventListener('submit', handleSubmit);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
