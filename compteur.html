@@ -138,6 +138,64 @@
     </div>
   </div>
 
+  <!-- MODAL ÉDITER COMPTEUR -->
+<div class="modal fade" id="modalEditCompteur" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border border-secondary rounded-3">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-pencil-square me-2 text-primary"></i>
+          Modifier le compteur
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="editCompteurForm" class="row g-3" novalidate>
+          <!-- Index caché -->
+          <input type="hidden" id="editIndex" />
+
+          <div class="col-12">
+            <label for="editNom" class="form-label">Nom d'affichage</label>
+            <input id="editNom" type="text" class="form-control" required>
+            <div class="invalid-feedback">Saisissez un nom.</div>
+          </div>
+
+          <div class="col-12">
+            <label for="editNumero" class="form-label">Numéro compteur</label>
+            <input id="editNumero" type="text" class="form-control" required>
+            <div class="invalid-feedback">Saisissez le numéro du compteur.</div>
+          </div>
+
+          <div class="col-12">
+            <label for="editZone" class="form-label">Emplacement</label>
+            <input id="editZone" type="text" class="form-control" required>
+            <div class="invalid-feedback">Indiquez l’emplacement.</div>
+          </div>
+
+          <div class="col-12">
+            <label for="editStatut" class="form-label">Statut</label>
+            <select id="editStatut" class="form-select" required>
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+            </select>
+            <div class="invalid-feedback">Choisissez un statut.</div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer border-0">
+        <button class="btn btn-outline-light" data-bs-dismiss="modal">Annuler</button>
+        <button id="updateCompteurBtn" class="btn btn-primary fw-semibold">
+          <i class="bi bi-save2 me-2"></i>
+          Mettre à jour
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
   <footer>
     © <span id="year"></span> Complexe Hôtelier Emmanuella | Système de Recharge Électrique Intelligente
   </footer>
@@ -180,11 +238,16 @@
               ${cpt.statut}
             </span>
           </td>
-          <td class="text-end">
+        <td class="text-end">
+          <div class="d-inline-flex align-items-center gap-2"">
+            <button class="btn btn-sm btn-outline-secondary" title="Modifier" data-edit="${index}">
+              <i class="bi bi-pencil-square"></i>
+            </button>
             <button class="btn btn-sm btn-outline-danger" title="Supprimer" data-index="${index}">
               <i class="bi bi-trash"></i>
             </button>
-          </td>`;
+          </div>
+        </td>`;
         tableBody.appendChild(tr);
       });
     }
@@ -263,6 +326,83 @@
       renderCompteursTable();
       initEvents();
     });
+
+    // --- Sélecteurs pour la modale d’édition
+const editForm  = document.getElementById('editCompteurForm');
+const updateBtn = document.getElementById('updateCompteurBtn');
+
+// Ouvre la modale d’édition et pré-remplit les champs
+function openEditModal(index){
+  const arr = readCompteurs();
+  const cpt = arr[index];
+  if(!cpt) return;
+
+  document.getElementById('editIndex').value = index;
+  document.getElementById('editNom').value    = cpt.nom || '';
+  document.getElementById('editNumero').value = cpt.numero || '';
+  document.getElementById('editZone').value   = cpt.zone || '';
+  document.getElementById('editStatut').value = cpt.statut || 'inactif';
+
+  // Reset validation state
+  editForm.classList.remove('was-validated');
+
+  const modalEl = document.getElementById('modalEditCompteur');
+  const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+  modalInstance.show();
+}
+
+// Enregistre la modification
+function onUpdateCompteur(){
+  // Validation Bootstrap
+  editForm.classList.add('was-validated');
+
+  const index  = parseInt(document.getElementById('editIndex').value, 10);
+  const nom    = document.getElementById('editNom').value.trim();
+  const numero = document.getElementById('editNumero').value.trim();
+  const zone   = document.getElementById('editZone').value.trim();
+  const statut = document.getElementById('editStatut').value;
+
+  if(!nom || !numero || !zone || !statut || Number.isNaN(index)) return;
+
+  const arr = readCompteurs();
+  if(index < 0 || index >= arr.length) return;
+
+  arr[index] = { nom, numero, zone, statut };
+  writeCompteurs(arr);
+
+  // Fermer la modale + rafraîchir
+  const modalEl = document.getElementById('modalEditCompteur');
+  const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+  modalInstance.hide();
+
+  renderCompteursTable();
+}
+
+// --- Étendre la délégation d’événements de la table (edit + delete)
+function initEvents(){
+  // (on garde ton écouteur existant pour la suppression)
+  tableBody.addEventListener('click', (e) => {
+    const delBtn = e.target.closest('button[data-index]');
+    if(delBtn){
+      deleteCompteur(parseInt(delBtn.getAttribute('data-index'), 10));
+      return;
+    }
+    const editBtn = e.target.closest('button[data-edit]');
+    if(editBtn){
+      openEditModal(parseInt(editBtn.getAttribute('data-edit'), 10));
+      return;
+    }
+  });
+
+  // Bouton "Enregistrer" de la modale d'ajout (déjà existant)
+  saveBtn.addEventListener('click', onSaveCompteur);
+
+  // Bouton "Mettre à jour" de la modale d'édition (nouveau)
+  if(updateBtn){
+    updateBtn.addEventListener('click', onUpdateCompteur);
+  }
+}
+
   </script>
 </body>
 </html>

@@ -404,3 +404,9 @@ a:hover, .link:hover{
   }
 }
 
+.btn-group .btn + .btn { 
+  margin-left: .25rem; 
+}
+
+
+
