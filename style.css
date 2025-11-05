@@ -302,3 +302,9 @@ a:hover, .link:hover{
   .navbar .nav-link{ margin-left:.5rem; }
   .glow-circle{ width:68px; height:68px; font-size:1.6rem; }
 }
+
+
+.btn-primary.success {
+  background: #198754 !important;
+  box-shadow: 0 0 16px rgba(25,135,84,.6);
+}

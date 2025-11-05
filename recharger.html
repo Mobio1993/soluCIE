@@ -34,7 +34,7 @@
       <div class="collapse navbar-collapse mt-3 mt-lg-0" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a href="index.html" class="nav-link">Accueil</a>
+            <a href="index.html" class="nav-link">Dashboard</a>
           </li>
           <li class="nav-item">
             <a href="recharger.html" class="nav-link active" aria-current="page">Recharger</a>
@@ -43,7 +43,7 @@
             <a href="compteur.html" class="nav-link">Compteurs</a>
           </li>
           <li class="nav-item">
-            <a href="#historique" class="nav-link">Historique</a>
+            <a href="historique.html" class="nav-link">Historique</a>
           </li>
           <li class="nav-item">
             <a href="#contact" class="nav-link">Contact</a>
@@ -72,6 +72,15 @@
                     <!-- options injectées par JS -->
                   </select>
                   <div class="invalid-feedback">Choisissez un compteur.</div>
+
+                  <!-- 👇 AJOUTE CE BLOC ICI -->
+                  <div id="compteurDetails"
+                      class="alert alert-glass mt-2 d-none small rounded-3 border border-primary"
+                      role="note" aria-live="polite">
+                    <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+                    <span id="compteurDetailsText">—</span>
+                  </div>
+
                 </div>
 
                 <div class="mb-3">
@@ -117,10 +126,16 @@
                 </div>
               </form>
 
+              <!-- ✅ Mini Progress Bar ajoutée ici -->
+                <div id="progressLine" class="progress d-none mt-3" style="height:4px;">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated"></div>
+                </div>
+
               <div id="statusMsg"
                    class="mt-3 text-center fw-semibold"
                    role="status"
-                   aria-live="polite"></div>
+                   aria-live="polite">
+              </div>
             </div>
 
             <p class="text-center text-small-note">
@@ -137,115 +152,201 @@
   </footer>
 
   <!-- Scripts -->
-  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script defer>
-    // --- Source de vérité "compteurs" : localStorage (fallback sur un seed si vide)
-    const SEED_COMPTEURS = [
-      { nom: 'Compteur_Night_Club', numero: '24212919633', zone: 'hotel', statut: 'actif' },
-    ];
+<script defer>
+  // --- Données / localStorage
+  const SEED_COMPTEURS = [
+    { nom: 'Compteur_Night_Club', numero: '24212919633', zone: 'hotel', statut: 'actif' },
+  ];
+  const storageKey = 'solucie.compteurs';
 
-    const storageKey = 'solucie.compteurs';
+  function readCompteurs() {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const arr = raw ? JSON.parse(raw) : null;
+      if (!Array.isArray(arr) || !arr.length) return SEED_COMPTEURS;
+      return arr;
+    } catch { return SEED_COMPTEURS; }
+  }
+  function getActifs() {
+    return readCompteurs().filter(c => (c?.statut || '').toLowerCase() === 'actif');
+  }
 
-    function readCompteurs() {
-      try {
-        const raw = localStorage.getItem(storageKey);
-        const arr = raw ? JSON.parse(raw) : null;
-        if (!Array.isArray(arr) || !arr.length) return SEED_COMPTEURS;
-        return arr;
-      } catch { return SEED_COMPTEURS; }
+  // --- Helpers
+  const $ = (sel) => document.querySelector(sel);
+
+  // Réfs DOM (déclarées ici, assignées dans init pour garantir qu'elles existent)
+  let selectCompteur, rechargeForm, statusMsg, btnSubmit;
+  let compteurDetails, compteurDetailsText;
+  let progressLine, progressBar;
+
+  // Timer progression
+  let progressTimer = null;
+
+  // --- UI
+  function renderSelectCompteurs() {
+    if (!selectCompteur) return;
+    // Supprime toutes les options sauf la disabled
+    selectCompteur.querySelectorAll('option:not([disabled])').forEach(o => o.remove());
+    getActifs().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.numero;
+      opt.textContent = c.nom;
+      selectCompteur.appendChild(opt);
+    });
+    // Remet le placeholder
+    selectCompteur.value = "";
+  }
+
+  function isMontantValide(v) {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 1000 && n % 500 === 0;
+  }
+
+  function setStatus(type, msg) {
+    statusMsg.className = 'mt-3 text-center fw-semibold';
+    if (type === 'error') statusMsg.classList.add('text-danger');
+    if (type === 'success') statusMsg.classList.add('text-success');
+    statusMsg.textContent = msg;
+  }
+
+  function setLoading(isLoading) {
+    if (!btnSubmit || !progressLine || !progressBar) return;
+
+    btnSubmit.disabled = isLoading;
+    btnSubmit.querySelector('.btn-label')?.classList.toggle('d-none', isLoading);
+    btnSubmit.querySelector('.btn-spinner')?.classList.toggle('d-none', !isLoading);
+
+    if (isLoading) {
+      progressLine.classList.remove('d-none');
+      progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+      let pct = 10;
+      progressBar.style.width = pct + '%';
+      progressBar.setAttribute('aria-valuenow', pct);
+
+      // Simulation d'avancement (jusqu'à 90%)
+      progressTimer = setInterval(() => {
+        pct = Math.min(pct + 8, 90);
+        progressBar.style.width = pct + '%';
+        progressBar.setAttribute('aria-valuenow', pct);
+      }, 200);
+    } else {
+      // Finir à 100%, puis reset et masquer
+      if (progressTimer) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+      }
+      progressBar.style.width = '100%';
+      progressBar.setAttribute('aria-valuenow', 100);
+
+      setTimeout(() => {
+        progressLine.classList.add('d-none');
+        progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+        progressBar.style.width = '0%';
+        progressBar.setAttribute('aria-valuenow', 0);
+      }, 300);
+    }
+  }
+
+  // --- Transactions (partagé avec historique.html)
+  const TX_KEY = 'solucie.transactions';
+
+  function addTransaction(tx){
+    try{
+      const raw = localStorage.getItem(TX_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      arr.push(tx);
+      localStorage.setItem(TX_KEY, JSON.stringify(arr));
+    }catch(e){
+      console.error('Impossible d\'écrire la transaction', e);
+    }
+  }
+
+  // --- Soumission
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const montantEl = $('#montant');
+    const paiementEl = $('#paiement');
+
+    rechargeForm.classList.add('was-validated');
+
+    if (!selectCompteur.value || !paiementEl.value || !isMontantValide(montantEl.value)) {
+      setStatus('error', 'Veuillez compléter correctement les informations (montant multiple de 500).');
+      return;
     }
 
-    function getActifs() {
-      return readCompteurs().filter(c => (c?.statut || '').toLowerCase() === 'actif');
+    // Simuler l’appel backend / HES
+    setLoading(true);
+    setStatus('success', '✅ Rechargement en cours de traitement…');
+
+    setTimeout(() => {
+      setLoading(false);
+      setStatus('success', '✅ Rechargement soumis. Vous recevrez une confirmation sous peu.');
+
+      // Récupérer infos choisies
+      const c = getActifs().find(x => x.numero === selectCompteur.value);
+      addTransaction({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+        date: new Date().toISOString(),
+        compteurNom: c ? c.nom : '',
+        compteurNumero: c ? c.numero : '',
+        zone: c ? c.zone : '',
+        montant: Number($('#montant').value),
+        paiement: $('#paiement').value,   // ex: "orange-money"
+        statut: 'soumis'                  // pourra devenir "réussi"/"échoué" après retour API
+      });
+
+
+      rechargeForm.reset();
+      rechargeForm.classList.remove('was-validated');
+      renderSelectCompteurs(); // remet l’option par défaut
+      // TODO: ici, intégrer l’appel réel à ton API (token + endpoint)
+    }, 1200);
+  }
+
+  // --- Init
+  function init() {
+    // Références DOM
+    selectCompteur       = $('#selectCompteur');
+    rechargeForm         = $('#rechargeForm');
+    statusMsg            = $('#statusMsg');
+    btnSubmit            = $('#btnSubmit');
+    compteurDetails      = $('#compteurDetails');
+    compteurDetailsText  = $('#compteurDetailsText');
+    progressLine         = $('#progressLine');
+    progressBar          = progressLine?.querySelector('.progress-bar');
+
+    // Année footer
+    const yearSpan = document.getElementById('year');
+    if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+
+    renderSelectCompteurs();
+
+    if (rechargeForm) {
+      rechargeForm.addEventListener('submit', handleSubmit);
     }
 
-    // --- Helpers DOM
-    const $ = (sel) => document.querySelector(sel);
-    const selectCompteur = $('#selectCompteur');
-    const rechargeForm   = $('#rechargeForm');
-    const statusMsg      = $('#statusMsg');
-    const btnSubmit      = $('#btnSubmit');
-
-    // --- Remplir le select avec les compteurs actifs
-    function renderSelectCompteurs() {
-      if (!selectCompteur) return;
-      // Reset tout sauf l'option disabled
-      selectCompteur.querySelectorAll('option:not([disabled])').forEach(o => o.remove());
-      getActifs().forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.numero;
-        opt.textContent = c.nom;
-        selectCompteur.appendChild(opt);
+    // --- Listeners “amélioration” sécurisés
+    if (selectCompteur) {
+      selectCompteur.addEventListener('change', () => {
+        const c = getActifs().find(x => x.numero === selectCompteur.value);
+        if (!c || !compteurDetails || !compteurDetailsText) return;
+        compteurDetails.classList.remove('d-none');
+        compteurDetailsText.textContent = `Numéro : ${c.numero} — Zone : ${c.zone.toUpperCase()}`;
       });
     }
 
-    // --- Validation simple du montant (multiple de 500)
-    function isMontantValide(v) {
-      const n = Number(v);
-      return Number.isFinite(n) && n >= 1000 && n % 500 === 0;
+    if (btnSubmit) {
+      // Petit feedback visuel optionnel au premier rendu
+      btnSubmit.classList.add('success');
+      setTimeout(() => btnSubmit.classList.remove('success'), 1200);
     }
+  }
 
-    // --- Feedback UI
-    function setStatus(type, msg) {
-      statusMsg.className = 'mt-3 text-center fw-semibold';
-      if (type === 'error') statusMsg.classList.add('text-danger');
-      if (type === 'success') statusMsg.classList.add('text-success');
-      statusMsg.textContent = msg;
-    }
+  document.addEventListener('DOMContentLoaded', init);
+</script>
 
-    function setLoading(isLoading) {
-      if (!btnSubmit) return;
-      btnSubmit.disabled = isLoading;
-      btnSubmit.querySelector('.btn-label')?.classList.toggle('d-none', isLoading);
-      btnSubmit.querySelector('.btn-spinner')?.classList.toggle('d-none', !isLoading);
-    }
-
-    // --- Soumission
-    function handleSubmit(e) {
-      e.preventDefault();
-      // HTML5 validity + nos règles
-      const montantEl = $('#montant');
-      const paiementEl = $('#paiement');
-
-      // Appliquer/retirer les classes de validation Bootstrap
-      rechargeForm.classList.add('was-validated');
-
-      if (!selectCompteur.value || !paiementEl.value || !isMontantValide(montantEl.value)) {
-        setStatus('error', 'Veuillez compléter correctement les informations (montant multiple de 500).');
-        return;
-      }
-
-      // Simuler l’appel backend / HES
-      setLoading(true);
-      setStatus('success', '✅ Rechargement en cours de traitement…');
-
-      // Simulation courte
-      setTimeout(() => {
-        setLoading(false);
-        setStatus('success', '✅ Rechargement soumis. Vous recevrez une confirmation sous peu.');
-        rechargeForm.reset();
-        rechargeForm.classList.remove('was-validated');
-        renderSelectCompteurs(); // remet l’option par défaut
-        // TODO: intégrer ici l’appel réel à ton API (token + endpoint)
-      }, 1200);
-    }
-
-    // --- Init
-    function init() {
-      // Année footer
-      const y = new Date().getFullYear();
-      const yearSpan = document.getElementById('year');
-      if (yearSpan) yearSpan.textContent = y;
-
-      renderSelectCompteurs();
-
-      if (rechargeForm) {
-        rechargeForm.addEventListener('submit', handleSubmit);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
 </body>
 </html>
