@@ -308,3 +308,99 @@ a:hover, .link:hover{
   background: #198754 !important;
   box-shadow: 0 0 16px rgba(25,135,84,.6);
 }
+
+/* ======== Historique — Responsiveness & Table → Cards ======== */
+
+/* Head sticky pour garder les labels visibles */
+#tableTx thead th {
+  position: sticky;
+  top: 64px; /* ajuste si ta navbar est plus/moins haute */
+  z-index: 2;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(8px);
+}
+
+/* State vide: réduit les marges sur mobile */
+#emptyState .text-small-note { max-width: 420px; margin-left: auto; margin-right: auto; }
+
+/* Boutons de période: wrap élégant */
+[data-range] {
+  white-space: nowrap;
+}
+
+/* ---- Mobile: tableau devient des cartes empilées ---- */
+@media (max-width: 576px) {
+
+  /* On cache le thead mais on garde l'info via ::before sur chaque cellule */
+  #tableTx thead { display: none; }
+
+  #tableTx, 
+  #tableTx tbody, 
+  #tableTx tr, 
+  #tableTx td {
+    display: block;
+    width: 100%;
+  }
+
+  #tableTx tr {
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    margin: .75rem 0;
+    padding: .5rem .75rem;
+  }
+
+  /* Chaque cellule affiche son label avant la valeur */
+  #tableTx td {
+    position: relative;
+    padding-left: 46%;
+    border: none !important;
+    min-height: 36px;
+  }
+
+  #tableTx td::before {
+    content: attr(data-th);
+    position: absolute;
+    left: .75rem;
+    top: .5rem;
+    width: 40%;
+    color: var(--muted-2);
+    font-size: .85rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: .2px;
+  }
+
+  /* Ajustements de typographie pour la carte */
+  #tableTx td .fw-semibold { font-size: 1rem; }
+  #tableTx td.text-end { text-align: left !important; }
+  #tableTx td .badge { margin-top: .25rem; }
+}
+
+/* ---- Petites largeurs: filtres en pile et respirants ---- */
+@media (max-width: 576px) {
+  .card .row.g-2.align-items-end > [class*="col-"] {
+    margin-bottom: .5rem;
+  }
+  .card .d-flex.gap-2 {
+    gap: .5rem !important;
+  }
+}
+
+/* ---- Moyennes largeurs: head plus lisible, cellules moins serrées ---- */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  #tableTx th, #tableTx td { padding: .9rem .75rem; }
+}
+
+/* Période (Historique) : 1 ligne au-delà de 640px */
+@media (min-width: 640px){
+  .range-group{ 
+    flex-wrap: nowrap !important;
+  }
+  .range-group .btn{
+    width: auto !important;   /* override .w-100 */
+    flex: 0 0 auto;
+  }
+}
+

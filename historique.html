@@ -66,14 +66,14 @@
             <label for="search" class="form-label">Recherche</label>
             <input id="search" type="text" class="form-control" placeholder="Montant, compteur, paiement…" />
           </div>
-          <div class="col-6 col-md-2">
+          <div class="col-12 col-sm-6 col-md-4">
             <label class="form-label">Période</label>
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-light btn-sm w-100" data-range="today">Aujourd'hui</button>
-              <button class="btn btn-outline-light btn-sm w-100" data-range="7">7j</button>
-              <button class="btn btn-outline-light btn-sm w-100" data-range="30">30j</button>
+            <div class="d-flex gap-2 flex-wrap range-group">
+                <button class="btn btn-outline-light btn-sm" data-range="today">Aujourd'hui</button>
+                <button class="btn btn-outline-light btn-sm" data-range="7">7j</button>
+                <button class="btn btn-outline-light btn-sm" data-range="30">30j</button>
             </div>
-          </div>
+            </div>
           <div class="col-6 col-md-2">
             <label for="status" class="form-label">Statut</label>
             <select id="status" class="form-select">
@@ -102,7 +102,7 @@
                 <th>Statut</th>
               </tr>
             </thead>
-            <tbody><!-- injecté par JS --></tbody>
+            <tbody aria-live="polite">><!-- injecté par JS --></tbody>
           </table>
         </div>
         <div id="emptyState" class="text-center py-5 d-none">
@@ -192,29 +192,61 @@
     }
 
     function render(){
-      const items = applyFilters(readTransactions());
-      tbody.innerHTML = '';
-      if(!items.length){
-        emptyState.classList.remove('d-none');
-        return;
-      }
-      emptyState.classList.add('d-none');
+        const items = applyFilters(readTransactions());
+        tbody.innerHTML = '';
 
-      for(const t of items){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${formatDate(t.date)}</td>
-          <td>
+        if(!items.length){
+            emptyState.classList.remove('d-none');
+            return;
+        }
+        emptyState.classList.add('d-none');
+
+        for(const t of items){
+            const tr = document.createElement('tr');
+            tr.className = 'tx-row';
+
+            // Construire les TD avec leurs data-th (labels)
+            const tdDate = document.createElement('td');
+            tdDate.setAttribute('data-th', 'Date/Heure');
+            tdDate.textContent = formatDate(t.date);
+
+            const tdCmp = document.createElement('td');
+            tdCmp.setAttribute('data-th', 'Compteur');
+            tdCmp.innerHTML = `
             <div class="fw-semibold">${t.compteurNom||'—'}</div>
             <div class="text-small-note">${t.compteurNumero||''}${t.zone? ' · '+t.zone.toUpperCase():''}</div>
-          </td>
-          <td class="text-end">${formatAmount(t.montant)}</td>
-          <td class="text-uppercase">${(t.paiement||'').replace('-', ' ')}</td>
-          <td>${badgeForStatus(t.statut)}</td>
-        `;
-        tbody.appendChild(tr);
-      }
+            `;
+
+            const tdMontant = document.createElement('td');
+            tdMontant.setAttribute('data-th', 'Montant');
+            tdMontant.className = 'text-end';
+            tdMontant.textContent = formatAmount(t.montant);
+
+            const tdPay = document.createElement('td');
+            tdPay.setAttribute('data-th', 'Paiement');
+            tdPay.className = 'text-uppercase';
+            tdPay.textContent = String(t.paiement||'').replace('-', ' ');
+
+            const tdStatut = document.createElement('td');
+            tdStatut.setAttribute('data-th', 'Statut');
+            tdStatut.innerHTML = badgeForStatus(t.statut);
+
+            tr.append(tdDate, tdCmp, tdMontant, tdPay, tdStatut);
+            tbody.appendChild(tr);
+        }
     }
+
+    // Fonction debounce
+
+     function debounce(fn, delay = 200){
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+
 
     // --- Export CSV simple
     function exportCsv(){
@@ -244,8 +276,10 @@
       });
 
       // Filtres
-      $$('#status, #search').forEach(el => el.addEventListener('input', render));
-      $$('[data-range]').forEach(btn => btn.addEventListener('click', () => {
+      // ✅ Filtres avec debounce pour la recherche
+        $('#status').addEventListener('input', render);
+        $('#search').addEventListener('input', debounce(render, 180));
+        $$('[data-range]').forEach(btn => btn.addEventListener('click', () => {
         $$('[data-range]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         render();
